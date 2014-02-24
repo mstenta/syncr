@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-# This is a script for making rsync easier.
+# Syncr is a script for making rsync easier.
 # It will prompt you for all the necessary information,
 # assemble the rsync call, and execute it.
 
