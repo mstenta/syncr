@@ -9,12 +9,12 @@ import sys
 # Import the subprocess library. We need this to call rsync at the end.
 import subprocess
 
-# Assemble the command.
+# Start to assemble the command.
 command = ['rsync', '-vv', '--stats', '--progress']
 
 # Collect source (defaults to current directory).
 source_default = './'
-source = raw_input('Source (include trailing slash): [%s]' %source_default)
+source = raw_input('Source (include trailing slash): [%s] ' %source_default)
 if not source:
     source = source_default
 
