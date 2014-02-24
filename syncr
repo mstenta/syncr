@@ -4,3 +4,74 @@
 # It will prompt you for all the necessary information,
 # assemble the rsync call, and execute it.
 
+import sys
+
+# Import the subprocess library. We need this to call rsync at the end.
+import subprocess
+
+# Assemble the command.
+command = ['rsync', '-vv', '--stats', '--progress']
+
+# Collect source (defaults to current directory).
+source_default = './'
+source = raw_input('Source (include trailing slash): [%s]' %source_default)
+if not source:
+    source = source_default
+
+# Collect target (required).
+target = raw_input('Destination (no trailing slash): ')
+if not target:
+    sys.exit('Destination is required. Try again.')
+
+# Start assembling flags.
+# Defaults: recursive, symlinks, obey filesystem boundaries.
+flags = '-rlx'
+
+# Preserve timestamps?
+time = raw_input('Should file timestamps be preserved? [Y/n]: ').lower()
+if time in ('', 'y'):
+    flags += 't'
+
+# Preserve permissions?
+perms = raw_input('Should file permissions be preserved? [Y/n]: ').lower()
+if perms in ('', 'y'):
+    flags += 'p'
+
+# Preserve executability?
+executability = raw_input('Should file executability be preserved? [Y/n]: ').lower()
+if executability in ('', 'y'):
+    flags += 'E'
+
+# Append flags to the command.
+command.append(flags);
+
+# Exclude listed files?
+exclude = raw_input('Should files be excluded from excludes.txt? [Y/n]: ').lower()
+if exclude in ('', 'y'):
+    command.append('--exclude-from')
+    command.append('excludes.txt')
+
+# Delete unmatched target files?
+delete = raw_input('Delete files from the destination if they are not in the source? [y/N]: ').lower()
+if delete in ('', 'n'):
+    pass
+elif delete in ('y'):
+    command.append('--delete')
+else:
+    sys.exit('Please enter y or n. Try again.')
+
+# Append the source and target.
+command.append(source)
+command.append(target)
+
+# Show what the rsync command will look like and ask for final confirmation.
+command_string = ' '.join(command)
+print "\nThe following rsync command will be executed:"
+print "\n    " + command_string + "\n"
+approval = raw_input('Are you sure you want to continue? [y/N]: ').lower()
+
+# Execute the call to rsync.
+if approval == 'y':
+    subprocess.call(command)
+else:
+    sys.exit('Sync canceled.')
