@@ -50,6 +50,11 @@ time = raw_input('Should file timestamps be preserved? [Y/n]: ').lower()
 if time in ('', 'y'):
     flags += 't'
 
+# Preserve group/ownership?
+owner = raw_input('Should file ownership and group be preserved? [Y/n]: ').lower()
+if owner in ('', 'y'):
+    flags += 'og'
+
 # Preserve permissions?
 perms = raw_input('Should file permissions be preserved? [Y/n]: ').lower()
 if perms in ('', 'y'):
