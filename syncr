@@ -12,8 +12,23 @@ import subprocess
 # Get the real directory path of this script (resolving symlinks).
 syncr = os.path.dirname(os.path.realpath(__file__))
 
-# Start to assemble the command.
-command = ['rsync', '-vv', '--stats', '--progress']
+# Start with an empty command array.
+command = []
+
+# Run as sudo?
+sudo = raw_input('Run rsync as super user (sudo)? [y/N]: ').lower()
+if sudo in ('', 'n'):
+    pass
+elif sudo in ('y'):
+    command = ['sudo'] + command
+else:
+    sys.exit('Please enter y or n. Try again.')
+
+# Add common pieces to the command.
+command.append('rsync')
+command.append('-vv')
+command.append('--stats')
+command.append('--progress')
 
 # Collect source (defaults to current directory).
 source_default = './'
