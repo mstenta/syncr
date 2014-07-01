@@ -4,10 +4,13 @@
 # It will prompt you for all the necessary information,
 # assemble the rsync call, and execute it.
 
-import sys
+import sys, os
 
 # Import the subprocess library. We need this to call rsync at the end.
 import subprocess
+
+# Get the real directory path of this script (resolving symlinks).
+syncr = os.path.dirname(os.path.realpath(__file__))
 
 # Start to assemble the command.
 command = ['rsync', '-vv', '--stats', '--progress']
@@ -49,7 +52,7 @@ command.append(flags);
 exclude = raw_input('Should files be excluded from excludes.txt? [Y/n]: ').lower()
 if exclude in ('', 'y'):
     command.append('--exclude-from')
-    command.append('excludes.txt')
+    command.append(syncr + '/excludes.txt')
 
 # Delete unmatched target files?
 delete = raw_input('Delete files from the destination if they are not in the source? [y/N]: ').lower()
