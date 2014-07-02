@@ -140,11 +140,13 @@ def collect_input(source, settings):
     exclude = raw_input('Should files be excluded from excludes.txt? [Y/n]: ').lower()
     if exclude in ('', 'y'):
         settings['exclude'] = True
+    else:
+        settings['exclude'] = False
 
     # Delete unmatched target files?
     delete = raw_input('Delete files from the destination if they are not in the source? [y/N]: ').lower()
     if delete in ('', 'n'):
-        pass
+        settings['delete'] = False
     elif delete in ('y'):
         settings['delete'] = True
     else:
@@ -153,7 +155,7 @@ def collect_input(source, settings):
     # Run as sudo?
     sudo = raw_input('Run rsync as super user (sudo)? [y/N]: ').lower()
     if sudo in ('', 'n'):
-        pass
+        settings['sudo'] = False
     elif sudo in ('y'):
         settings['sudo'] = True
     else:
