@@ -85,7 +85,8 @@ def collect_input(settings):
     # Preserve group/ownership?
     owner = raw_input('Should file ownership and group be preserved? [Y/n]: ').lower()
     if owner in ('', 'y'):
-        settings['flags'].append('og')
+        settings['flags'].append('o')
+        settings['flags'].append('g')
 
     # Preserve permissions?
     perms = raw_input('Should file permissions be preserved? [Y/n]: ').lower()
