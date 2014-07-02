@@ -9,23 +9,96 @@ import sys, os
 # Import the subprocess library. We need this to call rsync at the end.
 import subprocess
 
-# Main script function.
-def main():
+# Returns a dictionary of default settings.
+def default_settings():
+    return {
 
-    # Get the real directory path of this script (resolving symlinks).
-    syncr = os.path.dirname(os.path.realpath(__file__))
+        # Path to the destination directory (files will be copied TO here).
+        'destination': '',
 
-    # Start with an empty command array.
-    command = []
+        # Array of rsync flags to include (starting with some defaults).
+        'flags': [
+          'r',  # Recurse into subdirectories.
+          'l',  # Copy symlinks as symlinks.
+          'x',  # Do not cross filesystem boundaries.
+        ],
+
+        # Exclude files according to patterns in excludes.txt (default to True).
+        'exclude': True,
+
+        # Delete files from destination that don't exist in source
+        # (default to False).
+        'delete': False,
+
+        # Run as super user (sudo) (default to False).
+        'sudo': False,
+    }
+
+# Collect settings from user input.
+def collect_input(settings):
+
+    # Collect destination (required).
+    destination = raw_input('Destination (no trailing slash): ')
+    if not destination:
+        sys.exit('Destination is required. Try again.')
+    else:
+        settings['destination'] = destination
+
+    # Preserve timestamps?
+    time = raw_input('Should file timestamps be preserved? [Y/n]: ').lower()
+    if time in ('', 'y'):
+        settings['flags'].append('t')
+
+    # Preserve group/ownership?
+    owner = raw_input('Should file ownership and group be preserved? [Y/n]: ').lower()
+    if owner in ('', 'y'):
+        settings['flags'].append('og')
+
+    # Preserve permissions?
+    perms = raw_input('Should file permissions be preserved? [Y/n]: ').lower()
+    if perms in ('', 'y'):
+        settings['flags'].append('p')
+
+    # Preserve executability?
+    executability = raw_input('Should file executability be preserved? [Y/n]: ').lower()
+    if executability in ('', 'y'):
+        settings['flags'].append('E')
+
+    # Exclude listed files?
+    exclude = raw_input('Should files be excluded from excludes.txt? [Y/n]: ').lower()
+    if exclude in ('', 'y'):
+        settings['exclude'] = True
+
+    # Delete unmatched target files?
+    delete = raw_input('Delete files from the destination if they are not in the source? [y/N]: ').lower()
+    if delete in ('', 'n'):
+        pass
+    elif delete in ('y'):
+        settings['delete'] = True
+    else:
+        sys.exit('Please enter y or n. Try again.')
 
     # Run as sudo?
     sudo = raw_input('Run rsync as super user (sudo)? [y/N]: ').lower()
     if sudo in ('', 'n'):
         pass
     elif sudo in ('y'):
-        command = ['sudo'] + command
+        settings['sudo'] = True
     else:
         sys.exit('Please enter y or n. Try again.')
+
+    # Return the new settings.
+    return settings
+
+# Assemble the rsync command from settings.
+def assemble_command(source, settings):
+
+    # Start with an empty command array.
+    command = []
+
+    # Add sudo, if specified.
+    if settings['sudo']:
+        command.append('sudo')
 
     # Add common pieces to the command.
     command.append('rsync')
@@ -33,62 +106,47 @@ def main():
     command.append('--stats')
     command.append('--progress')
 
+    # Assemble flags.
+    command.append('-' + ''.join(settings['flags']))
+
+    # Exclude patterns.
+    if settings['exclude']:
+
+        # Get the real directory path of this script (resolving symlinks).
+        syncr = os.path.dirname(os.path.realpath(__file__))
+
+        # Append the exclude-from argument.
+        command.append('--exclude-from')
+        command.append(syncr + '/excludes.txt')
+
+    # Delete destination files.
+    if settings['delete']:
+        command.append('--delete')
+
+    # Append the source and destination.
+    command.append(source)
+    command.append(settings['destination'])
+
+    # Return the command list.
+    return command
+
+# Main script function.
+def main():
+
+    # Load default settings.
+    settings = default_settings()
+
     # Collect source (defaults to current directory).
     source_default = './'
     source = raw_input('Source (include trailing slash): [%s] ' %source_default)
     if not source:
         source = source_default
 
-    # Collect target (required).
-    target = raw_input('Destination (no trailing slash): ')
-    if not target:
-        sys.exit('Destination is required. Try again.')
+    # Collect user input.
+    collect_input(settings)
 
-    # Start assembling flags.
-    # Defaults: recursive, symlinks, obey filesystem boundaries.
-    flags = '-rlx'
-
-    # Preserve timestamps?
-    time = raw_input('Should file timestamps be preserved? [Y/n]: ').lower()
-    if time in ('', 'y'):
-        flags += 't'
-
-    # Preserve group/ownership?
-    owner = raw_input('Should file ownership and group be preserved? [Y/n]: ').lower()
-    if owner in ('', 'y'):
-        flags += 'og'
-
-    # Preserve permissions?
-    perms = raw_input('Should file permissions be preserved? [Y/n]: ').lower()
-    if perms in ('', 'y'):
-        flags += 'p'
-
-    # Preserve executability?
-    executability = raw_input('Should file executability be preserved? [Y/n]: ').lower()
-    if executability in ('', 'y'):
-        flags += 'E'
-
-    # Append flags to the command.
-    command.append(flags);
-
-    # Exclude listed files?
-    exclude = raw_input('Should files be excluded from excludes.txt? [Y/n]: ').lower()
-    if exclude in ('', 'y'):
-        command.append('--exclude-from')
-        command.append(syncr + '/excludes.txt')
-
-    # Delete unmatched target files?
-    delete = raw_input('Delete files from the destination if they are not in the source? [y/N]: ').lower()
-    if delete in ('', 'n'):
-        pass
-    elif delete in ('y'):
-        command.append('--delete')
-    else:
-        sys.exit('Please enter y or n. Try again.')
-
-    # Append the source and target.
-    command.append(source)
-    command.append(target)
+    # Assemble command.
+    command = assemble_command(source, settings)
 
     # Show what the rsync command will look like and ask for final confirmation.
     command_string = ' '.join(command)
