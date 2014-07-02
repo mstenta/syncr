@@ -5,7 +5,7 @@ Syncr is a script for making rsync easier.
 
 It will prompt you for all the necessary information, assemble the rsync call, and execute it.
 
-It also provides the ability to save the specified settings to a .syncr file in the source directory, allowing you to bypass all the questions next time.
+It also provides the ability to save the specified settings to a .syncr file in the source directory, allowing you to bypass all the questions next time. (At the moment this is limited to local source directories. Remote SSH directories are not yet supported.)
 
 Supported options:
 
