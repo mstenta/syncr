@@ -9,92 +9,99 @@ import sys, os
 # Import the subprocess library. We need this to call rsync at the end.
 import subprocess
 
-# Get the real directory path of this script (resolving symlinks).
-syncr = os.path.dirname(os.path.realpath(__file__))
+# Main script function.
+def main():
 
-# Start with an empty command array.
-command = []
+    # Get the real directory path of this script (resolving symlinks).
+    syncr = os.path.dirname(os.path.realpath(__file__))
 
-# Run as sudo?
-sudo = raw_input('Run rsync as super user (sudo)? [y/N]: ').lower()
-if sudo in ('', 'n'):
-    pass
-elif sudo in ('y'):
-    command = ['sudo'] + command
-else:
-    sys.exit('Please enter y or n. Try again.')
+    # Start with an empty command array.
+    command = []
 
-# Add common pieces to the command.
-command.append('rsync')
-command.append('-vv')
-command.append('--stats')
-command.append('--progress')
+    # Run as sudo?
+    sudo = raw_input('Run rsync as super user (sudo)? [y/N]: ').lower()
+    if sudo in ('', 'n'):
+        pass
+    elif sudo in ('y'):
+        command = ['sudo'] + command
+    else:
+        sys.exit('Please enter y or n. Try again.')
 
-# Collect source (defaults to current directory).
-source_default = './'
-source = raw_input('Source (include trailing slash): [%s] ' %source_default)
-if not source:
-    source = source_default
+    # Add common pieces to the command.
+    command.append('rsync')
+    command.append('-vv')
+    command.append('--stats')
+    command.append('--progress')
 
-# Collect target (required).
-target = raw_input('Destination (no trailing slash): ')
-if not target:
-    sys.exit('Destination is required. Try again.')
+    # Collect source (defaults to current directory).
+    source_default = './'
+    source = raw_input('Source (include trailing slash): [%s] ' %source_default)
+    if not source:
+        source = source_default
 
-# Start assembling flags.
-# Defaults: recursive, symlinks, obey filesystem boundaries.
-flags = '-rlx'
+    # Collect target (required).
+    target = raw_input('Destination (no trailing slash): ')
+    if not target:
+        sys.exit('Destination is required. Try again.')
 
-# Preserve timestamps?
-time = raw_input('Should file timestamps be preserved? [Y/n]: ').lower()
-if time in ('', 'y'):
-    flags += 't'
+    # Start assembling flags.
+    # Defaults: recursive, symlinks, obey filesystem boundaries.
+    flags = '-rlx'
 
-# Preserve group/ownership?
-owner = raw_input('Should file ownership and group be preserved? [Y/n]: ').lower()
-if owner in ('', 'y'):
-    flags += 'og'
+    # Preserve timestamps?
+    time = raw_input('Should file timestamps be preserved? [Y/n]: ').lower()
+    if time in ('', 'y'):
+        flags += 't'
 
-# Preserve permissions?
-perms = raw_input('Should file permissions be preserved? [Y/n]: ').lower()
-if perms in ('', 'y'):
-    flags += 'p'
+    # Preserve group/ownership?
+    owner = raw_input('Should file ownership and group be preserved? [Y/n]: ').lower()
+    if owner in ('', 'y'):
+        flags += 'og'
 
-# Preserve executability?
-executability = raw_input('Should file executability be preserved? [Y/n]: ').lower()
-if executability in ('', 'y'):
-    flags += 'E'
+    # Preserve permissions?
+    perms = raw_input('Should file permissions be preserved? [Y/n]: ').lower()
+    if perms in ('', 'y'):
+        flags += 'p'
 
-# Append flags to the command.
-command.append(flags);
+    # Preserve executability?
+    executability = raw_input('Should file executability be preserved? [Y/n]: ').lower()
+    if executability in ('', 'y'):
+        flags += 'E'
 
-# Exclude listed files?
-exclude = raw_input('Should files be excluded from excludes.txt? [Y/n]: ').lower()
-if exclude in ('', 'y'):
-    command.append('--exclude-from')
-    command.append(syncr + '/excludes.txt')
+    # Append flags to the command.
+    command.append(flags);
 
-# Delete unmatched target files?
-delete = raw_input('Delete files from the destination if they are not in the source? [y/N]: ').lower()
-if delete in ('', 'n'):
-    pass
-elif delete in ('y'):
-    command.append('--delete')
-else:
-    sys.exit('Please enter y or n. Try again.')
+    # Exclude listed files?
+    exclude = raw_input('Should files be excluded from excludes.txt? [Y/n]: ').lower()
+    if exclude in ('', 'y'):
+        command.append('--exclude-from')
+        command.append(syncr + '/excludes.txt')
 
-# Append the source and target.
-command.append(source)
-command.append(target)
+    # Delete unmatched target files?
+    delete = raw_input('Delete files from the destination if they are not in the source? [y/N]: ').lower()
+    if delete in ('', 'n'):
+        pass
+    elif delete in ('y'):
+        command.append('--delete')
+    else:
+        sys.exit('Please enter y or n. Try again.')
 
-# Show what the rsync command will look like and ask for final confirmation.
-command_string = ' '.join(command)
-print "\nThe following rsync command will be executed:"
-print "\n    " + command_string + "\n"
-approval = raw_input('Are you sure you want to continue? [y/N]: ').lower()
+    # Append the source and target.
+    command.append(source)
+    command.append(target)
 
-# Execute the call to rsync.
-if approval == 'y':
-    subprocess.call(command)
-else:
-    sys.exit('Sync canceled.')
+    # Show what the rsync command will look like and ask for final confirmation.
+    command_string = ' '.join(command)
+    print "\nThe following rsync command will be executed:"
+    print "\n    " + command_string + "\n"
+    approval = raw_input('Are you sure you want to continue? [y/N]: ').lower()
+
+    # Execute the call to rsync.
+    if approval == 'y':
+        subprocess.call(command)
+    else:
+        sys.exit('Sync canceled.')
+
+# Execute!
+if __name__ == "__main__":
+    main()
