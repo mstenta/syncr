@@ -5,6 +5,8 @@ Syncr is a script for making rsync easier.
 
 It will prompt you for all the necessary information, assemble the rsync call, and execute it.
 
+It also provides the ability to save the specified settings to a .syncr file in the source directory, allowing you to bypass all the questions next time.
+
 Supported options:
 
 * Source
@@ -16,6 +18,7 @@ Supported options:
 * Exclude certain files (uses list in provided excludes.txt)
 * Delete destination files that aren't in the source
 * Run as super user (sudo)
+* Save settings to a .syncr file in the source directory.
 * Preview the rsync command before executing
 
 Example command usage:

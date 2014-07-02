@@ -37,6 +37,44 @@ def default_settings():
         'sudo': False,
     }
 
+# Load settings from a .syncr file, if available. Otherwise, use defaults.
+def load_settings(source):
+
+    # Start by loading default settings.
+    settings = default_settings()
+
+    # Start with an assumption that settings have not been loaded from a
+    # saved .syncr file.
+    saved = False
+
+    # If the source is remote...
+    if path_is_remote(source):
+
+        # Not yet supported.
+        pass
+
+    else:
+
+        # Check to see if a .syncr file is available.
+        filename = source + '.syncr'
+        if os.path.isfile(filename):
+
+            # Prompt the user to load the settings.
+            load = raw_input('A .syncr file was found in the source directory. Would you like to load settings from it? [Y/n]: ').lower()
+            if load in ('', 'y'):
+
+                # Load the settings.
+                with open (filename, 'r') as infile:
+
+                    # Decode JSON.
+                    settings = json.loads(infile.read())
+
+                    # Set the 'saved' variable to True
+                    saved = True
+
+    # Return the settings.
+    return settings, saved
+
 # Save settings to a .syncr file in the source directory.
 def save_settings(source, settings):
 
@@ -68,7 +106,7 @@ def path_is_remote(path):
       return False
 
 # Collect settings from user input.
-def collect_input(settings):
+def collect_input(source, settings):
 
     # Collect destination (required).
     destination = raw_input('Destination (no trailing slash): ')
@@ -121,6 +159,11 @@ def collect_input(settings):
     else:
         sys.exit('Please enter y or n. Try again.')
 
+    # Should we save settings to a .syncr file in the source directory?
+    save = raw_input('Do you want to save these settings to a .syncr file in the source directory for future use? [y/N]: ').lower()
+    if save == 'y':
+        save_settings(source, settings)
+
     # Return the new settings.
     return settings
 
@@ -167,22 +210,19 @@ def assemble_command(source, settings):
 # Main script function.
 def main():
 
-    # Load default settings.
-    settings = default_settings()
-
     # Collect source (defaults to current directory).
     source_default = './'
     source = raw_input('Source (include trailing slash): [%s] ' %source_default)
     if not source:
         source = source_default
 
-    # Collect user input.
-    collect_input(settings)
+    # Load settings.
+    settings, saved = load_settings(source)
 
-    # Should we save settings to a .syncr file in the source directory?
-    save = raw_input('Do you want to save these settings to a .syncr file in the source directory for future use? [y/N]: ').lower()
-    if save == 'y':
-        save_settings(source, settings)
+    # If settings have not been loaded from a saved .syncr file, collect input
+    # from the user.
+    if not saved:
+        settings = collect_input(source, settings)
 
     # Assemble command.
     command = assemble_command(source, settings)
