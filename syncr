@@ -12,6 +12,10 @@ import subprocess
 # Import the json library for reading and writing .syncr settings.
 import json
 
+# Import the tempfile library for saving temporary files (used to copy .syncr
+# file to a remote directory).
+import tempfile
+
 # Returns a dictionary of default settings.
 def default_settings():
     return {
@@ -50,8 +54,8 @@ def load_settings(source):
     # If the source is remote...
     if path_is_remote(source):
 
-        # Not yet supported.
-        pass
+        # Load the remote settings.
+        # ...
 
     else:
 
@@ -81,8 +85,17 @@ def save_settings(source, settings):
     # If the source is remote...
     if path_is_remote(source):
 
-        # Not yet supported.
-        print "\nSaving settings to a remote source is not yet supported."
+        # Create a named temporary file.
+        with tempfile.NamedTemporaryFile('w') as outfile:
+
+            # Dump the settings dictionary as JSON.
+            json.dump(settings, outfile)
+
+            # Copy the file to the source directory.
+            os.system('scp ' + outfile.name + ' ' + source + '/.syncr')
+
+            # Print a message
+            print "\nSettings saved!"
 
     # Otherwise, assume the source is local.
     else:
