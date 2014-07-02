@@ -9,6 +9,9 @@ import sys, os
 # Import the subprocess library. We need this to call rsync at the end.
 import subprocess
 
+# Import the json library for reading and writing .syncr settings.
+import json
+
 # Returns a dictionary of default settings.
 def default_settings():
     return {
@@ -33,6 +36,36 @@ def default_settings():
         # Run as super user (sudo) (default to False).
         'sudo': False,
     }
+
+# Save settings to a .syncr file in the source directory.
+def save_settings(source, settings):
+
+    # If the source is remote...
+    if path_is_remote(source):
+
+        # Not yet supported.
+        print "\nSaving settings to a remote source is not yet supported."
+
+    # Otherwise, assume the source is local.
+    else:
+
+        # Write the .sync file locally.
+        with open(source + '.syncr', 'w') as outfile:
+
+            # Dump the settings dictionary as JSON.
+            json.dump(settings, outfile)
+
+            # Print a message
+            print "\nSettings saved!"
+
+# Check to see if a path is remote.
+def path_is_remote(path):
+
+    # Does it contain an at sign (@)?
+    if '@' in path:
+      return True
+    else:
+      return False
 
 # Collect settings from user input.
 def collect_input(settings):
@@ -144,6 +177,11 @@ def main():
 
     # Collect user input.
     collect_input(settings)
+
+    # Should we save settings to a .syncr file in the source directory?
+    save = raw_input('Do you want to save these settings to a .syncr file in the source directory for future use? [y/N]: ').lower()
+    if save == 'y':
+        save_settings(source, settings)
 
     # Assemble command.
     command = assemble_command(source, settings)

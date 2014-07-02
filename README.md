@@ -31,6 +31,9 @@ Example command usage:
     Should files be excluded from excludes.txt? [Y/n]: y
     Delete files from the destination if they are not in the source? [y/N]: n
     Run rsync as super user (sudo)? [y/N]: y
+    Do you want to save these settings to a .syncr file in the source directory for future use? [y/N]: y
+
+    Settings saved!
 
     The following rsync command will be executed:
 
